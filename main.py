@@ -176,6 +176,39 @@ class ExpenseTracker:
         # Add button to plot category summary
         plot_button = ttk.Button(screen5, text="Plot Category Summary", command=summary.plot_category_summary)
         plot_button.grid(row=row_num, column=0, padx=5, pady=5)
+        
+def export_to_json(self):
+        cursor = self.db_connection.cursor()
+        cursor.execute("SELECT * FROM expenses")
+        expenses = cursor.fetchall()
+
+        expenses_list = []
+        for expense in expenses:
+            expense_dict = {
+                'id': expense[0],
+                'date': expense[1],
+                'category': expense[2],
+                'amount': expense[3],
+                'description': expense[4]
+                        }
+            expenses_list.append(expense_dict)
+
+        with open('expenses.json', 'w') as json_file:
+            json.dump(expenses_list, json_file, indent=4)
+        print("Expenses exported to expenses.json")
+
+    def import_from_json(self):
+        with open('expenses.json', 'r') as json_file:
+            expenses_list = json.load(json_file)
+
+        cursor = self.db_connection.cursor()
+        for expense in expenses_list:
+            cursor.execute('''
+                INSERT OR IGNORE INTO expenses (id, date, category, amount, description)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (expense['id'], expense['date'], expense['category'], expense['amount'], expense['description']))
+        self.db_connection.commit()
+        print("Expenses imported from expenses.json")
 
 if __name__ == "__main__":
     root = tk.Tk()
